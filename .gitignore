@@ -1,0 +1,5 @@
+content/js/espeak.worker.js
+content/js/espeak.worker.data
+content/js/espeak.jsm
+*.xpi
+*.sublime-*

@@ -1,0 +1,4 @@
+[submodule "espeak"]
+	path = espeak
+	url = https://github.com/eeejay/espeak.git
+	branch = emscripten
