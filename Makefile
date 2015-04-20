@@ -6,6 +6,7 @@ SOURCES = \
 	content/js/espeak.jsm \
 	content/js/espeak.worker.js \
 	content/js/espeak.worker.data \
+	content/js/espeak-speech-service.jsm \
 	$(RDF)
 
 EXT_NAME := \
