@@ -6,7 +6,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>espeak-webspeech-api@monotonous.org</em:id>
     <em:name>eSpeak Web Speech API</em:name>
-    <em:version>0.1</em:version>
+    <em:version>0.2</em:version>
     <em:type>2</em:type>
     <em:targetApplication>
       <Description>
