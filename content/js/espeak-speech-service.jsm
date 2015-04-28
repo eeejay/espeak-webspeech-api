@@ -24,6 +24,10 @@ XPCOMUtils.defineLazyModuleGetter(this, "Services",
   "resource://gre/modules/Services.jsm");
 
 
+function debug() {
+  dump('espeak-debug: ' + Array.prototype.join.call(arguments, ' ') + '\n');
+}
+
 function SpeechTaskCallback(aPusher, aTask) {
   this.pusher = aPusher;
   this.task = aTask;
@@ -86,9 +90,16 @@ EspeakSpeechService.prototype = {
     let [_, vname, vlang] = URI_REGEX.exec(aUri);
     this.espeak.setVoice(decodeURI(vname), decodeURI(vlang));
 
+    function boundaryEvent(name, charOffset, timestamp) {
+      return function () {
+        aTask.dispatchBoundary(name, timestamp, charOffset);
+      };
+    }
+
     let pusher = new PushAudioNode(audioDestination.context,
       function() {
         aTask.dispatchStart();
+        aTask.dispatchBoundary('word', 0, 0);
       },
       function(elapsedTime) {
         aTask.dispatchEnd(elapsedTime, aText.length);
@@ -98,12 +109,6 @@ EspeakSpeechService.prototype = {
     audioDestination.gain.value = aVolume;
 
     aTask.setup(new SpeechTaskCallback(pusher, aTask));
-
-    function boundaryEvent(name, charOffset, timestamp) {
-      return function () {
-        aTask.dispatchBoundary(name, timestamp, charOffset);
-      };
-    }
 
     this.espeak.synth(aText,
       function(samples, events) {
@@ -116,8 +121,8 @@ EspeakSpeechService.prototype = {
           let timestamp = event.audio_position / 1000
           switch(event.type) {
             case 'word': {
+              if (event.text_position <= 1) break;
               let offset = event.text_position - 1;
-              offset += aText.substr(offset).search(/[\s.$]/);
               pusher.addTrackCallback(timestamp,
                 boundaryEvent('word', offset, timestamp));
               break;
@@ -155,7 +160,10 @@ EspeakSpeechService.prototype = {
             for (var language of voice.languages) {
               var uri = VOICE_URI_BASE +
                 encodeURI(voice.name) + "?lang=" + encodeURI(language.name);
-              registry.addVoice(self, uri, voice.name, language.name, true);
+              langname = language.name.split('-');
+              if (langname.length > 1 && langname[1].length == 2)
+                langname[1] = langname[1].toUpperCase();
+              registry.addVoice(self, uri, voice.name, langname.join('-'), true);
               self.voices.push(uri);
               if (voice.name == 'default') {
                 registry.setDefaultVoice(uri, true);
